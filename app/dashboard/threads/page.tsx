@@ -1,5 +1,7 @@
 import CreateThreadBTN from '@/components/CreateThreadBTN'
+import ThreadsTable from '@/components/ThreadsTable'
 import React from 'react'
+import { allThreads } from '@/constants/index'
 
 const ThreadsPage = () => {
   return (
@@ -17,13 +19,10 @@ const ThreadsPage = () => {
         </div>
 
         <div>
-            <h2 className='text-md font-medium'>
-                All Threads
-            </h2>
-        </div>
-        <div>
-            user threads
-            {/* User Threads */}
+            <ThreadsTable
+                classNames='w-full  '
+                threads={allThreads}
+            />
         </div>
     </div>
   )
