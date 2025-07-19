@@ -70,7 +70,7 @@ const ThreadsPage = () => {
     <div className='flex flex-col h-full mt-2 max-w-7xl mx-auto md:mt-6'>
         <div className='space-y-2'>
             <h1 className='text-2xl font-bold'>Your Threads</h1>
-            <p className='text-sm text-gray-500'>Manage your threads here ({threads.length} total)</p>
+            <p className='text-sm text-gray-500'>Manage your threads here</p>
         </div>
 
         <div className='my-8 max-w-[30%] space-y-4 '>

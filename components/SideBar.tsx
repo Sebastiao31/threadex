@@ -29,7 +29,7 @@ const SideBar = ({ isOpen = true, onToggle }: SideBarProps) => {
       
       {/* Sidebar */}
       <div className={`
-        ${isMobile ? 'fixed' : 'relative'} 
+        ${isMobile ? 'fixed' : 'fixed'} 
         ${sidebarVisible ? 'translate-x-0' : '-translate-x-full'}
         ${isMobile ? 'w-64 z-50' : 'w-64'}
         h-screen bg-white border-r border-gray-200 transition-all duration-300 ease-in-out

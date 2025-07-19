@@ -144,7 +144,7 @@ export async function getThreadById(id: string): Promise<Thread | null> {
   }
 }
 
-export async function updateThreadStatus(id: string, status: Thread['status']): Promise<boolean> {
+export async function updateThread(id: string, updates: Partial<Thread>): Promise<boolean> {
   try {
     const { data: { user } } = await supabase.auth.getUser()
     
@@ -154,20 +154,29 @@ export async function updateThreadStatus(id: string, status: Thread['status']): 
 
     const { error } = await supabase
       .from('threads')
-      .update({ status })
+      .update(updates)
       .eq('id', id)
       .eq('user_id', user.id)
 
     if (error) {
-      console.error('Error updating thread status:', error)
+      console.error('Error updating thread:', error)
       return false
+    }
+
+    // Dispatch custom event to notify other components
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('threadUpdated'))
     }
 
     return true
   } catch (error) {
-    console.error('Error in updateThreadStatus:', error)
+    console.error('Error in updateThread:', error)
     return false
   }
+}
+
+export async function updateThreadStatus(id: string, status: Thread['status']): Promise<boolean> {
+  return updateThread(id, { status })
 }
 
 export async function deleteThread(id: string): Promise<boolean> {

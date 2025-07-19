@@ -100,13 +100,14 @@ const ThreadsTable = ({threads, classNames}: ThreadsTableProps) => {
                               key={`${id}-${deletingThreadId}`} 
                               onValueChange={(action) => handleActionSelect(action, id)}
                               disabled={deletingThreadId === id}
+                              
                             >
-                              <SelectTrigger className="w-10 h-8 p-0 border-none shadow-none hover:bg-gray-100 transition-colors">
+                              <SelectTrigger className="w-10 h-8 p-0 border-none shadow-none hover:cursor-pointer transition-colors">
                                 <div className="flex items-center justify-center w-full">
                                   {deletingThreadId === id ? (
                                     <Loader2 className="h-4 w-4 text-gray-500 animate-spin" />
                                   ) : (
-                                    <Ellipsis className="h-4 w-4 text-gray-500" />
+                                    <Ellipsis className="h-4 w-4 text-black" />
                                   )}
                                 </div>
                               </SelectTrigger>
@@ -116,7 +117,7 @@ const ThreadsTable = ({threads, classNames}: ThreadsTableProps) => {
                                   className="text-red-600 focus:text-red-600 focus:bg-red-50 cursor-pointer"
                                 >
                                   <div className="flex items-center space-x-2">
-                                    <Trash2 className="h-4 w-4" />
+                                    <Trash2 className="h-4 w-4 text-red-600" />
                                     <span>Delete Thread</span>
                                   </div>
                                 </SelectItem>
