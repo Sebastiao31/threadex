@@ -163,6 +163,177 @@ const ThreadEditor = ({ params }: { params: { id: string } }) => {
     }
   }
 
+  const handleDeleteTweet = async (index: number) => {
+    if (!thread || thread.tweets.length <= 1) return
+
+    setSavingIndex(index)
+    try {
+      // Create new tweets array without the deleted tweet
+      const updatedTweets = thread.tweets.filter((_, i) => i !== index)
+      
+      const success = await updateThread(thread.id, { tweets: updatedTweets })
+
+      if (success) {
+        // Update local state
+        setThread({ ...thread, tweets: updatedTweets })
+        
+        // Update original tweets array
+        const newOriginalTweets = originalTweets.filter((_, i) => i !== index)
+        setOriginalTweets(newOriginalTweets)
+        
+        // Hide toolbar if it was active for the deleted tweet
+        setActiveToolbarIndex(null)
+        
+        // Show success message briefly
+        setSavedIndex(index)
+        setTimeout(() => setSavedIndex(null), 2000)
+      } else {
+        alert('Failed to delete tweet. Please try again.')
+      }
+    } catch (error) {
+      console.error('Error deleting tweet:', error)
+      alert('An error occurred while deleting the tweet.')
+    } finally {
+      setSavingIndex(null)
+    }
+  }
+
+  const handleMoveUp = async (index: number) => {
+    if (!thread || index === 0) return
+
+    setSavingIndex(index)
+    try {
+      // Create new tweets array with swapped positions
+      const updatedTweets = [...thread.tweets]
+      const temp = updatedTweets[index]
+      updatedTweets[index] = updatedTweets[index - 1]
+      updatedTweets[index - 1] = temp
+      
+      const success = await updateThread(thread.id, { tweets: updatedTweets })
+
+      if (success) {
+        // Update local state
+        setThread({ ...thread, tweets: updatedTweets })
+        
+        // Update original tweets array
+        const newOriginalTweets = [...originalTweets]
+        const tempOriginal = newOriginalTweets[index]
+        newOriginalTweets[index] = newOriginalTweets[index - 1]
+        newOriginalTweets[index - 1] = tempOriginal
+        setOriginalTweets(newOriginalTweets)
+        
+        // Update active toolbar index to follow the moved tweet
+        if (activeToolbarIndex === index) {
+          setActiveToolbarIndex(index - 1)
+        } else if (activeToolbarIndex === index - 1) {
+          setActiveToolbarIndex(index)
+        }
+        
+        // Show success message briefly
+        setSavedIndex(index - 1)
+        setTimeout(() => setSavedIndex(null), 1000)
+      } else {
+        alert('Failed to move tweet. Please try again.')
+      }
+    } catch (error) {
+      console.error('Error moving tweet:', error)
+      alert('An error occurred while moving the tweet.')
+    } finally {
+      setSavingIndex(null)
+    }
+  }
+
+  const handleMoveDown = async (index: number) => {
+    if (!thread || index === thread.tweets.length - 1) return
+
+    setSavingIndex(index)
+    try {
+      // Create new tweets array with swapped positions
+      const updatedTweets = [...thread.tweets]
+      const temp = updatedTweets[index]
+      updatedTweets[index] = updatedTweets[index + 1]
+      updatedTweets[index + 1] = temp
+      
+      const success = await updateThread(thread.id, { tweets: updatedTweets })
+
+      if (success) {
+        // Update local state
+        setThread({ ...thread, tweets: updatedTweets })
+        
+        // Update original tweets array
+        const newOriginalTweets = [...originalTweets]
+        const tempOriginal = newOriginalTweets[index]
+        newOriginalTweets[index] = newOriginalTweets[index + 1]
+        newOriginalTweets[index + 1] = tempOriginal
+        setOriginalTweets(newOriginalTweets)
+        
+        // Update active toolbar index to follow the moved tweet
+        if (activeToolbarIndex === index) {
+          setActiveToolbarIndex(index + 1)
+        } else if (activeToolbarIndex === index + 1) {
+          setActiveToolbarIndex(index)
+        }
+        
+        // Show success message briefly
+        setSavedIndex(index + 1)
+        setTimeout(() => setSavedIndex(null), 1000)
+      } else {
+        alert('Failed to move tweet. Please try again.')
+      }
+    } catch (error) {
+      console.error('Error moving tweet:', error)
+      alert('An error occurred while moving the tweet.')
+    } finally {
+      setSavingIndex(null)
+    }
+  }
+
+  const handleAddTweet = async (afterIndex: number) => {
+    if (!thread) return
+
+    setSavingIndex(afterIndex)
+    try {
+      // Create new tweets array with empty tweet inserted after the specified index
+      const updatedTweets = [...thread.tweets]
+      const newTweetIndex = afterIndex + 1
+      updatedTweets.splice(newTweetIndex, 0, '') // Insert empty string at the new position
+      
+      const success = await updateThread(thread.id, { tweets: updatedTweets })
+
+      if (success) {
+        // Update local state
+        setThread({ ...thread, tweets: updatedTweets })
+        
+        // Update original tweets array
+        const newOriginalTweets = [...originalTweets]
+        newOriginalTweets.splice(newTweetIndex, 0, '') // Insert empty string at the new position
+        setOriginalTweets(newOriginalTweets)
+        
+        // Set active toolbar to the new tweet and focus it
+        setActiveToolbarIndex(newTweetIndex)
+        
+        // Focus the new tweet textarea after a short delay to ensure it's rendered
+        setTimeout(() => {
+          const newTextarea = document.querySelector(`textarea[data-tweet-index="${newTweetIndex}"]`) as HTMLTextAreaElement
+          if (newTextarea) {
+            newTextarea.focus()
+          }
+        }, 100)
+        
+        // Show success message briefly
+        setSavedIndex(newTweetIndex)
+        setTimeout(() => setSavedIndex(null), 1000)
+      } else {
+        alert('Failed to add tweet. Please try again.')
+      }
+    } catch (error) {
+      console.error('Error adding tweet:', error)
+      alert('An error occurred while adding the tweet.')
+    } finally {
+      setSavingIndex(null)
+    }
+  }
+
   if (loading) {
     return (
       <main className="max-w-4xl mx-auto p-6">
@@ -276,6 +447,7 @@ const ThreadEditor = ({ params }: { params: { id: string } }) => {
                      style={{ height: 'auto' }}
                      placeholder="What's happening?"
                      disabled={savingIndex === index}
+                     data-tweet-index={index}
                      ref={(textarea) => {
                        if (textarea) {
                          // Auto-resize on initial render and when content changes
@@ -297,6 +469,10 @@ const ThreadEditor = ({ params }: { params: { id: string } }) => {
                            characterCount={tweet.length}
                            currentIndex={index}
                            totalTweets={thread.tweets.length}
+                           onDeleteTweet={handleDeleteTweet}
+                           onMoveUp={handleMoveUp}
+                           onMoveDown={handleMoveDown}
+                           onAddTweet={handleAddTweet}
                          />
                        </div>
                    )}

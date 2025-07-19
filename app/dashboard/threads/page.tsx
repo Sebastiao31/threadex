@@ -48,7 +48,7 @@ const ThreadsPage = () => {
 
   if (loading) {
     return (
-      <div className='flex flex-col h-full mt-2 max-w-7xl mx-auto md:mt-6'>
+      <div className='flex flex-col h-full mt-2 max-w-4xl mx-auto md:mt-6'>
         <div className='space-y-2'>
           <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
           <div className="h-4 bg-gray-200 rounded animate-pulse max-w-xs"></div>
@@ -67,7 +67,7 @@ const ThreadsPage = () => {
   }
 
   return (
-    <div className='flex flex-col h-full mt-2 max-w-7xl mx-auto md:mt-6'>
+    <div className='flex flex-col h-full mt-2 max-w-4xl  mb-[140px] mx-auto md:mt-6'>
         <div className='space-y-2'>
             <h1 className='text-2xl font-bold'>Your Threads</h1>
             <p className='text-sm text-gray-500'>Manage your threads here</p>

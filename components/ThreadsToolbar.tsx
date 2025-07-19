@@ -11,9 +11,13 @@ interface ThreadsToolbarProps {
   characterCount: number
   currentIndex: number
   totalTweets: number
+  onDeleteTweet: (index: number) => void
+  onMoveUp: (index: number) => void
+  onMoveDown: (index: number) => void
+  onAddTweet: (afterIndex: number) => void
 }
 
-const ThreadsToolbar = ({ tweetNumber, characterCount, currentIndex, totalTweets }: ThreadsToolbarProps) => {
+const ThreadsToolbar = ({ tweetNumber, characterCount, currentIndex, totalTweets, onDeleteTweet, onMoveUp, onMoveDown, onAddTweet }: ThreadsToolbarProps) => {
   const maxLength = 280
   const progress = (characterCount / maxLength) * 100
   const circumference = 2 * Math.PI * 8 // radius = 8
@@ -35,6 +39,7 @@ const ThreadsToolbar = ({ tweetNumber, characterCount, currentIndex, totalTweets
   const isLastTweet = currentIndex === totalTweets - 1
   const showMoveUp = !isFirstTweet
   const showMoveDown = !isLastTweet
+  const canDelete = totalTweets > 1 // Don't allow deleting if only one tweet
   
   return (
     <main className="flex items-center gap-2 ">
@@ -81,9 +86,12 @@ const ThreadsToolbar = ({ tweetNumber, characterCount, currentIndex, totalTweets
         <div className='ml-1'>
             <h1 className='font-medium text-gray-600'>#{tweetNumber}</h1>
         </div>
-        <div>
-            <AddTweetSpace />
-        </div>
+                  <div>
+              <AddTweetSpace 
+                tweetIndex={currentIndex}
+                onAddTweet={onAddTweet}
+              />
+          </div>
         <div>
             <AddMedia />
         </div>
@@ -93,20 +101,32 @@ const ThreadsToolbar = ({ tweetNumber, characterCount, currentIndex, totalTweets
     
 
         {/* Move controls - conditionally rendered based on position */}
-        {showMoveUp && (
-            <div>
-                <MoveUp />
-            </div>
-        )}
-        {showMoveDown && (
-            <div>
-                <MoveDown />
-            </div>
-        )}
+                  {showMoveUp && (
+              <div>
+                  <MoveUp 
+                    tweetIndex={currentIndex}
+                    onMoveUp={onMoveUp}
+                    disabled={isFirstTweet}
+                  />
+              </div>
+          )}
+          {showMoveDown && (
+              <div>
+                  <MoveDown 
+                    tweetIndex={currentIndex}
+                    onMoveDown={onMoveDown}
+                    disabled={isLastTweet}
+                  />
+              </div>
+          )}
 
-        <div>
-            <DeleteTweet />
-        </div>
+                 <div>
+             <DeleteTweet 
+               tweetIndex={currentIndex}
+               onDelete={onDeleteTweet}
+               disabled={!canDelete}
+             />
+         </div>
     </main>
   )
 }
