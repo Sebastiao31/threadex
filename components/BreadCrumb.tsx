@@ -1,4 +1,6 @@
-import React from 'react'
+'use client'
+
+import React, { useState, useEffect } from 'react'
 import {
     Breadcrumb,
     BreadcrumbItem,
@@ -7,15 +9,30 @@ import {
     BreadcrumbPage,
     BreadcrumbSeparator,
   } from "@/components/ui/breadcrumb"
-import { allThreads } from '@/constants'
+import { getThreadById } from '@/lib/utils'
 
 interface BreadCrumbProps {
   threadId?: string
 }
 
 const BreadCrumb = ({ threadId }: BreadCrumbProps) => {
-  // Find the current thread by ID
-  const currentThread = threadId ? allThreads.find(thread => thread.id.toString() === threadId) : null
+  const [threadName, setThreadName] = useState<string>('Loading...')
+
+  useEffect(() => {
+    const fetchThreadName = async () => {
+      if (!threadId) return
+
+      // Check Supabase for thread
+      const storedThread = await getThreadById(threadId)
+      if (storedThread) {
+        setThreadName(storedThread.name)
+      } else {
+        setThreadName('Thread Not Found')
+      }
+    }
+
+    fetchThreadName()
+  }, [threadId])
   
   return (
     <Breadcrumb>
@@ -27,7 +44,7 @@ const BreadCrumb = ({ threadId }: BreadCrumbProps) => {
         
         <BreadcrumbItem>
           <BreadcrumbPage className='text-md font-medium'>
-            {currentThread ? currentThread.name : 'Thread Not Found'}
+            {threadName}
           </BreadcrumbPage>
         </BreadcrumbItem>
       </BreadcrumbList>
