@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { ArrowLeft, Copy, Check, Calendar, Share2, Loader2 } from 'lucide-react'
 import BreadCrumb from '@/components/BreadCrumb'
 import { getThreadById, formatTimeAgo, updateThread } from '@/lib/utils'
-import { Thread } from '@/types'
+import { Thread, TweetData } from '@/types'
 import { useAuth } from '@/lib/AuthProvider'
 import ThreadsToolbar from '@/components/ThreadsToolbar'
 
@@ -17,7 +17,7 @@ const ThreadEditor = ({ params }: { params: { id: string } }) => {
   const [loading, setLoading] = useState(true)
   const [savingIndex, setSavingIndex] = useState<number | null>(null)
   const [savedIndex, setSavedIndex] = useState<number | null>(null)
-  const [originalTweets, setOriginalTweets] = useState<string[]>([])
+  const [originalTweets, setOriginalTweets] = useState<(string | TweetData)[]>([])
   const [imageError, setImageError] = useState(false)
   const [activeToolbarIndex, setActiveToolbarIndex] = useState<number | null>(null)
 
@@ -30,6 +30,19 @@ const ThreadEditor = ({ params }: { params: { id: string } }) => {
   const avatarUrl = user?.user_metadata?.avatar_url
   const fallbackAvatar = displayName.charAt(0).toUpperCase()
   const showFallback = !avatarUrl || imageError
+
+  // Helper functions to handle mixed tweet data
+  const getTweetText = (tweet: string | TweetData): string => {
+    return typeof tweet === 'string' ? tweet : tweet.text
+  }
+
+  const getTweetImage = (tweet: string | TweetData) => {
+    return typeof tweet === 'string' ? null : tweet.image
+  }
+
+  const createTweetData = (text: string, image?: { url: string; prompt?: string }): TweetData => {
+    return { text, ...(image && { image }) }
+  }
 
   // Reset image error when user changes
   useEffect(() => {
@@ -109,7 +122,15 @@ const ThreadEditor = ({ params }: { params: { id: string } }) => {
 
     // Update local state immediately for responsive UI
     const updatedTweets = [...thread.tweets]
-    updatedTweets[index] = newContent
+    const currentTweet = updatedTweets[index]
+    
+    // Preserve image if it exists, just update text
+    if (typeof currentTweet === 'object' && currentTweet.image) {
+      updatedTweets[index] = { ...currentTweet, text: newContent }
+    } else {
+      updatedTweets[index] = newContent
+    }
+    
     setThread({ ...thread, tweets: updatedTweets })
   }
 
@@ -124,21 +145,29 @@ const ThreadEditor = ({ params }: { params: { id: string } }) => {
   const handleTweetBlur = async (index: number, content: string) => {
     if (!thread || content.length > 280) return
 
+    const originalText = getTweetText(originalTweets[index])
     // Don't save if content hasn't changed from the original
-    if (content === originalTweets[index]) return
+    if (content === originalText) return
 
     setSavingIndex(index)
     try {
       // Update thread in database
       const updatedTweets = [...thread.tweets]
-      updatedTweets[index] = content
+      const currentTweet = updatedTweets[index]
+      
+      // Preserve image if it exists, just update text
+      if (typeof currentTweet === 'object' && currentTweet.image) {
+        updatedTweets[index] = { ...currentTweet, text: content }
+      } else {
+        updatedTweets[index] = content
+      }
       
       const success = await updateThread(thread.id, { tweets: updatedTweets })
 
       if (success) {
         // Update original tweets to reflect the saved state
         const newOriginalTweets = [...originalTweets]
-        newOriginalTweets[index] = content
+        newOriginalTweets[index] = updatedTweets[index]
         setOriginalTweets(newOriginalTweets)
         
         // Show saved indicator
@@ -334,6 +363,48 @@ const ThreadEditor = ({ params }: { params: { id: string } }) => {
     }
   }
 
+  const handleImageGenerated = async (index: number, imageData: { url: string; prompt?: string }) => {
+    if (!thread) return
+
+    setSavingIndex(index)
+    try {
+      const updatedTweets = [...thread.tweets]
+      const currentTweet = updatedTweets[index]
+      const currentText = getTweetText(currentTweet)
+      
+      // Create new tweet data with image
+      const newTweetData = createTweetData(currentText, {
+        url: imageData.url,
+        prompt: imageData.prompt
+      })
+      
+      updatedTweets[index] = newTweetData
+      
+      const success = await updateThread(thread.id, { tweets: updatedTweets })
+
+      if (success) {
+        // Update local state
+        setThread({ ...thread, tweets: updatedTweets })
+        
+        // Update original tweets array
+        const newOriginalTweets = [...originalTweets]
+        newOriginalTweets[index] = newTweetData
+        setOriginalTweets(newOriginalTweets)
+        
+        // Show success message briefly
+        setSavedIndex(index)
+        setTimeout(() => setSavedIndex(null), 2000)
+      } else {
+        alert('Failed to save image. Please try again.')
+      }
+    } catch (error) {
+      console.error('Error saving image:', error)
+      alert('An error occurred while saving the image.')
+    } finally {
+      setSavingIndex(null)
+    }
+  }
+
   if (loading) {
     return (
       <main className="max-w-4xl mx-auto p-6">
@@ -367,7 +438,7 @@ const ThreadEditor = ({ params }: { params: { id: string } }) => {
       </main>
     )
   }
-
+  
   return (
     <main className="max-w-4xl mx-auto p-6 mb-[240px] max-md:mb-[120px]">
       {/* Header */}
@@ -431,7 +502,7 @@ const ThreadEditor = ({ params }: { params: { id: string } }) => {
                  {/* Tweet Content */}
                  <div>
                    <textarea
-                     value={tweet}
+                     value={getTweetText(tweet)}
                      onChange={(e) => {
                        handleTweetChange(index, e.target.value)
                        autoResizeTextarea(e.target)
@@ -443,7 +514,7 @@ const ThreadEditor = ({ params }: { params: { id: string } }) => {
                        handleTweetBlur(index, e.target.value)
                      }}
                      onInput={(e) => autoResizeTextarea(e.target as HTMLTextAreaElement)}
-                     className={`w-full resize-none  focus:outline-none overflow-hidden min-h-[80px] leading-relaxed text-gray-900 text-[15px] border-none bg-transparent placeholder-gray-500 ${tweet.length > 280 ? 'text-red-500' : ''}`}
+                     className={`w-full resize-none  focus:outline-none overflow-hidden min-h-[80px] leading-relaxed text-gray-900 text-[15px] border-none bg-transparent placeholder-gray-500 ${getTweetText(tweet).length > 280 ? 'text-red-500' : ''}`}
                      style={{ height: 'auto' }}
                      placeholder="What's happening?"
                      disabled={savingIndex === index}
@@ -456,8 +527,46 @@ const ThreadEditor = ({ params }: { params: { id: string } }) => {
                      }}
                    />
                    
+                   {/* Generated Image Display */}
+                   {getTweetImage(tweet) && (
+                     <div className="mt-3">
+                       <div className="relative rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
+                         <img 
+                           src={getTweetImage(tweet)!.url}
+                           alt="Generated image"
+                           className="w-full h-auto max-h-96 object-cover"
+                           onError={(e) => {
+                             console.error('Error loading generated image')
+                             e.currentTarget.style.display = 'none'
+                           }}
+                         />
+                         <div className="absolute top-2 right-2 flex gap-2">
+                           <button
+                             onClick={() => {
+                               // Remove image by converting TweetData back to string
+                               const updatedTweets = [...thread!.tweets]
+                               updatedTweets[index] = getTweetText(tweet)
+                               updateThread(thread!.id, { tweets: updatedTweets })
+                               setThread({ ...thread!, tweets: updatedTweets })
+                             }}
+                             className="bg-red-600/80 hover:bg-red-600 text-white text-xs px-2 py-1 rounded-md transition-colors"
+                             title="Remove image"
+                           >
+                             ✕
+                           </button>
+                           <div className="bg-black/70 text-white text-xs px-2 py-1 rounded-md">
+                             AI Generated
+                           </div>
+                         </div>
+                       </div>
+                       {getTweetImage(tweet)!.prompt && (
+                         <p className="text-xs text-gray-500 mt-1 italic">
+                           Prompt: {getTweetImage(tweet)!.prompt}
+                         </p>
+                       )}
+                     </div>
+                   )}
 
-                   
                    {/* Threads Toolbar - Show when textarea is focused */}
                    {activeToolbarIndex === index && (
                                             <div 
@@ -466,13 +575,16 @@ const ThreadEditor = ({ params }: { params: { id: string } }) => {
                        >
                          <ThreadsToolbar 
                            tweetNumber={index + 1} 
-                           characterCount={tweet.length}
+                           characterCount={getTweetText(tweet).length}
                            currentIndex={index}
                            totalTweets={thread.tweets.length}
+                           tweetContent={getTweetText(tweet)}
+                           threadTopic={thread.topic}
                            onDeleteTweet={handleDeleteTweet}
                            onMoveUp={handleMoveUp}
                            onMoveDown={handleMoveDown}
                            onAddTweet={handleAddTweet}
+                           onImageGenerated={handleImageGenerated}
                          />
                        </div>
                    )}

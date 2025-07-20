@@ -7,6 +7,15 @@ type Threads = Models.DocumentList<Models.Document> & {
     lastEdit: string;
 }
 
+export interface TweetData {
+    text: string;
+    image?: {
+        url: string;
+        prompt?: string;
+        generatedAt?: string;
+    };
+}
+
 export interface Thread {
     id: string;
     user_id: string;
@@ -15,7 +24,7 @@ export interface Thread {
     topic: string;
     writing_style: string;
     thread_length: number;
-    tweets: string[];
+    tweets: (string | TweetData)[];
     created_at: string;
     updated_at: string;
 }

@@ -5,19 +5,24 @@ import AddGif from './AddGif'
 import DeleteTweet from './DeleteTweet'
 import MoveDown from './MoveDown'
 import MoveUp from './MoveUp'
+import AiImage from './AiImage'
+import ScrapContent from './ScrapContent'
 
 interface ThreadsToolbarProps {
   tweetNumber: number
   characterCount: number
   currentIndex: number
   totalTweets: number
+  tweetContent: string
+  threadTopic: string
   onDeleteTweet: (index: number) => void
   onMoveUp: (index: number) => void
   onMoveDown: (index: number) => void
   onAddTweet: (afterIndex: number) => void
+  onImageGenerated: (index: number, imageData: { url: string; prompt?: string }) => void
 }
 
-const ThreadsToolbar = ({ tweetNumber, characterCount, currentIndex, totalTweets, onDeleteTweet, onMoveUp, onMoveDown, onAddTweet }: ThreadsToolbarProps) => {
+const ThreadsToolbar = ({ tweetNumber, characterCount, currentIndex, totalTweets, tweetContent, threadTopic, onDeleteTweet, onMoveUp, onMoveDown, onAddTweet, onImageGenerated }: ThreadsToolbarProps) => {
   const maxLength = 280
   const progress = (characterCount / maxLength) * 100
   const circumference = 2 * Math.PI * 8 // radius = 8
@@ -93,10 +98,23 @@ const ThreadsToolbar = ({ tweetNumber, characterCount, currentIndex, totalTweets
               />
           </div>
         <div>
-            <AddMedia />
+            <AddMedia/>
         </div>
         <div>
             <AddGif />
+        </div>
+
+        <div>
+            <AiImage
+              tweetIndex={currentIndex}
+              tweetContent={tweetContent}
+              threadTopic={threadTopic}
+              onImageGenerated={onImageGenerated}
+            />
+        </div>
+
+        <div>
+            <ScrapContent/>
         </div>
     
 
