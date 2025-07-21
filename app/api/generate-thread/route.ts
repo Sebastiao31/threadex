@@ -5,7 +5,7 @@ import { processTweets } from '@/lib/utils'
 
 export async function POST(request: NextRequest) {
   try {
-    const { topic, writingStyle, threadLength } = await request.json()
+    const { topic, writingStyle, threadLength, username } = await request.json()
 
     if (!topic) {
       return NextResponse.json(
@@ -18,9 +18,12 @@ export async function POST(request: NextRequest) {
     const userPrompt = `
 Topic: ${topic}
 Writing Style: ${writingStyle || 'informative'}
-Thread Length: ${threadLength || 7} tweets
+Number of Content Items/Tips: ${threadLength || 7}
+User Handle: @${username || 'yourhandle'}
 
 Generate a Twitter thread about this topic following the format specified in the system prompt.
+The thread should have ${threadLength || 7} numbered content items/tips, plus intro and summary tweets.
+In the final call-to-action tweet, use "@${username || 'yourhandle'}" instead of "@yourhandle".
 `
 
     const completion = await openai.chat.completions.create({

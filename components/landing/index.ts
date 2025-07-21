@@ -1,0 +1,6 @@
+export { default as LandingHero } from './LandingHero'
+export { default as LandingFeatures } from './LandingFeatures'
+export { default as LandingHowItWorks } from './LandingHowItWorks'
+export { default as LandingTestimonials } from './LandingTestimonials'
+export { default as LandingCTA } from './LandingCTA'
+export { default as LandingFooter } from './LandingFooter' 

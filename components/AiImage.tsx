@@ -102,7 +102,7 @@ const AiImage = ({ tweetIndex, tweetContent, threadTopic, onImageGenerated }: Ai
         </TooltipTrigger>
         <TooltipContent>
             <p>{isGenerating ? 'Generating Image...' : 'Generate AI Image'}</p>
-            <p className="text-xs opacity-75">Right-click for custom prompt</p>
+            <p className="text-xs opacity-75">Right-click for custom prompt (recommended)</p>
         </TooltipContent>
     </Tooltip>
 </main>

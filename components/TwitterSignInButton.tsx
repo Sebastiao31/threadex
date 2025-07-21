@@ -1,7 +1,9 @@
 'use client'
 
 import React, { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { signInWithTwitter } from '@/lib/auth'
+import { useAuth } from '@/lib/AuthProvider'
 
 interface TwitterSignInButtonProps {
   className?: string
@@ -10,8 +12,17 @@ interface TwitterSignInButtonProps {
 
 const TwitterSignInButton = ({ className = '', children }: TwitterSignInButtonProps) => {
   const [isLoading, setIsLoading] = useState(false)
+  const { user, loading: authLoading } = useAuth()
+  const router = useRouter()
 
-  const handleSignIn = async () => {
+  const handleClick = async () => {
+    // If user is already authenticated, redirect to dashboard
+    if (user) {
+      router.push('/dashboard')
+      return
+    }
+
+    // If no user, start Twitter OAuth flow
     setIsLoading(true)
     try {
       const result = await signInWithTwitter()
@@ -26,9 +37,22 @@ const TwitterSignInButton = ({ className = '', children }: TwitterSignInButtonPr
     }
   }
 
+  // Show loading state while checking authentication
+  if (authLoading) {
+    return (
+      <button
+        disabled
+        className={`flex items-center justify-center space-x-2 bg-gray-400 text-white px-6 py-3 rounded-lg font-medium cursor-not-allowed ${className}`}
+      >
+        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+        <span>Loading...</span>
+      </button>
+    )
+  }
+
   return (
     <button
-      onClick={handleSignIn}
+      onClick={handleClick}
       disabled={isLoading}
       className={`flex items-center justify-center space-x-2 bg-black text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
     >
@@ -39,10 +63,10 @@ const TwitterSignInButton = ({ className = '', children }: TwitterSignInButtonPr
         </>
       ) : (
         <>
-          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 24 24">
             <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
           </svg>
-          {children || 'Sign in with Twitter'}
+          {user ? (children || 'Go to Dashboard') : (children || 'Sign in with Twitter')}
         </>
       )}
     </button>

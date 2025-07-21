@@ -13,7 +13,10 @@ const Signout = () => {
   const handleSignOut = async () => {
     setIsLoading(true)
     try {
-      await signOut()
+      // Clear cookies manually since we're not using Supabase auth
+      document.cookie = 'twitter_user_id=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT;';
+      document.cookie = 'twitter_screen_name=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT;';
+      
       router.push('/home') // Redirect to home page after sign out
     } catch (error) {
       console.error('Error signing out:', error)

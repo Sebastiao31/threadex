@@ -8,6 +8,7 @@ import { getThreadById, formatTimeAgo, updateThread } from '@/lib/utils'
 import { Thread, TweetData } from '@/types'
 import { useAuth } from '@/lib/AuthProvider'
 import ThreadsToolbar from '@/components/ThreadsToolbar'
+import ThreadsHeader from '@/components/ThreadsHeader'
 
 const ThreadEditor = ({ params }: { params: { id: string } }) => {
   const router = useRouter()
@@ -443,14 +444,12 @@ const ThreadEditor = ({ params }: { params: { id: string } }) => {
     <main className="max-w-4xl mx-auto p-6 mb-[240px] max-md:mb-[120px]">
       {/* Header */}
       <div className="mb-18">
-        <div className='max-md:hidden mb-4'>
-          <BreadCrumb threadId={params.id}/>
-        </div>
+        
 
       </div>
 
               {/* Thread Content */}
-        <div className="max-w-[598px] mx-auto bg-white overflow-hidden mr-[120px]">
+        <div className="max-w-[598px] mx-auto bg-white overflow-block mr-[120px]">
         
 
                           {thread.tweets.map((tweet, index) => (

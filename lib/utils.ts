@@ -28,9 +28,13 @@ export function validateTweet(tweet: string): string {
 }
 
 export function processTweets(tweets: string[], length: number): string[] {
+  // length = number of content items/tips
+  // Expected structure: 1 intro + X content + 1 summary + 1 CTA = X + 3 total tweets
+  const expectedTotalTweets = length + 3
+  
   return tweets
     .filter((tweet: string) => tweet && tweet.length > 0)
-    .slice(0, length + 1)
+    .slice(0, expectedTotalTweets)
     .map((tweet: string) => validateTweet(tweet))
 }
 

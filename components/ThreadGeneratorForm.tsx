@@ -13,14 +13,22 @@ import {
 import { Slider } from "@/components/ui/slider"
 import { saveThread } from '@/lib/utils'
 import { Thread } from '@/types'
+import { useAuth } from '@/lib/AuthProvider'
 
 const ThreadGeneratorForm = () => {
   const router = useRouter()
+  const { user } = useAuth()
   const [threadLength, setThreadLength] = useState([7])
   const [writingStyle, setWritingStyle] = useState('')
   const [topic, setTopic] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+
+  // Extract username from user metadata (same logic as SideBarFooter)
+  const username = user?.user_metadata?.user_name || 
+                   user?.user_metadata?.preferred_username ||
+                   user?.email?.split('@')[0] || 
+                   'yourhandle'
 
   const writingStyles = [
     { value: 'casual', label: 'Casual' },
@@ -49,7 +57,8 @@ const ThreadGeneratorForm = () => {
         body: JSON.stringify({
           topic: topic.trim(),
           writingStyle,
-          threadLength: threadLength[0]
+          threadLength: threadLength[0],
+          username: username
         }),
       })
 
@@ -126,7 +135,7 @@ const ThreadGeneratorForm = () => {
 
         {/* Thread Length Slider */}
         <div className="flex items-center space-x-2">
-          <label className="text-gray-500 md:inline whitespace-nowrap">Thread Length:</label>
+          <label className="text-gray-500 md:inline whitespace-nowrap">Content Items:</label>
           <div className="flex items-center space-x-3">
             <Slider
               value={threadLength}

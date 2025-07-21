@@ -1,18 +1,20 @@
-import Link from 'next/link'
 import React from 'react'
-import SignIn from '@/components/SignIn'
-import TwitterSignInButton  from '@/components/TwitterSignInButton'
+import LandingHero from '@/components/landing/LandingHero'
+import LandingFeatures from '@/components/landing/LandingFeatures'
+import LandingHowItWorks from '@/components/landing/LandingHowItWorks'
+import LandingTestimonials from '@/components/landing/LandingTestimonials'
+import LandingCTA from '@/components/landing/LandingCTA'
+import LandingFooter from '@/components/landing/LandingFooter'
 
 const HomePage = () => {
   return (
-    <main>
-      <h1> Im in the landing page</h1>
-      <button>
-        <Link href="/dashboard">Go to Dashboard</Link>
-      </button>
-      <button>
-        <TwitterSignInButton/>
-      </button>
+    <main className="min-h-screen">
+      <LandingHero />
+      <LandingFeatures />
+      <LandingHowItWorks />
+      <LandingTestimonials />
+      <LandingCTA />
+      <LandingFooter />
     </main>
   )
 }

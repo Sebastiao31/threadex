@@ -1,13 +1,67 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { useAuth } from '@/lib/AuthProvider'
+import { supabase } from '@/lib/supabase'
 import Signout from './Signout'
 
+interface TwitterUser {
+  id: string
+  twitter_id: string
+  screen_name: string
+  name: string
+  profile_image_url: string
+  oauth_token: string
+  oauth_token_secret: string
+  created_at: string
+}
+
 const SideBarFooter = () => {
-  const { user, loading } = useAuth()
+  const [user, setUser] = useState<TwitterUser | null>(null)
+  const [loading, setLoading] = useState(true)
   // State to track if image failed to load - MUST be called before any conditional returns
   const [imageError, setImageError] = useState(false)
+
+  // Helper function to get cookie value
+  const getCookie = (name: string): string | null => {
+    if (typeof document === 'undefined') return null;
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
+    return null;
+  }
+
+  // Fetch user data from cookies and database
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const twitterUserId = getCookie('twitter_user_id');
+        
+        if (twitterUserId) {
+          const { data: twitterUser, error } = await supabase
+            .from('twitter_users')
+            .select('*')
+            .eq('twitter_id', twitterUserId)
+            .single();
+
+          if (error) {
+            console.error('Error fetching Twitter user:', error);
+            setUser(null);
+          } else {
+            setUser(twitterUser);
+          }
+        } else {
+          setUser(null);
+        }
+      } catch (error) {
+        console.error('Error in fetchUserData:', error);
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   // Reset image error when user changes
   useEffect(() => {
@@ -50,13 +104,10 @@ const SideBarFooter = () => {
     )
   }
 
-  // Extract user information from Twitter metadata
-  const displayName = user.user_metadata?.name || user.user_metadata?.full_name || 'User'
-  const username = user.user_metadata?.user_name || 
-                   user.user_metadata?.preferred_username ||
-                   user.email?.split('@')[0] || 
-                   'unknown'
-  const avatarUrl = user.user_metadata?.avatar_url
+  // Extract user information from Twitter data
+  const displayName = user.name || user.screen_name || 'User'
+  const username = user.screen_name || 'unknown'
+  const avatarUrl = user.profile_image_url
   
   // Create fallback avatar with first letter of display name
   const fallbackAvatar = displayName.charAt(0).toUpperCase()

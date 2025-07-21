@@ -44,6 +44,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       } finally {
         setLoading(false)
       }
+
     }
 
     getInitialSession()

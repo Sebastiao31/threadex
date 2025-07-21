@@ -3,7 +3,7 @@ import { supabase } from './supabase'
 export const signInWithTwitter = async () => {
   try {
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'twitter',
       options: {
